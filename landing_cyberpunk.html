@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AB·AI — Автоматизация A/B-тестирования с ИИ</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --neon:#00f0ff;
+  --neon2:#ff3cac;
+  --neon3:#7b2fff;
+  --dark:#03060f;
+  --dark2:#060d1a;
+  --dark3:#0a1628;
+  --grid:#0d1f3c;
+  --text:#c8e8ff;
+  --muted:#4a7090;
+  --glow: 0 0 8px #00f0ff88, 0 0 20px #00f0ff33;
+  --glow2: 0 0 8px #ff3cac88, 0 0 20px #ff3cac33;
+}
+body{font-family:'Rajdhani',sans-serif;color:var(--text);background:var(--dark);overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* GRID BACKGROUND */
+.grid-bg{
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+/* SCAN LINE OVERLAY */
+.scanlines::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);
+  pointer-events:none;
+}
+
+/* TYPOGRAPHY */
+.mono{font-family:'Share Tech Mono',monospace}
+.orb{font-family:'Orbitron',sans-serif}
+.section-label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--neon);letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'//';opacity:.5}
+
+/* NEON BORDERS */
+.neon-box{border:1px solid var(--neon);box-shadow:var(--glow),inset 0 0 20px rgba(0,240,255,.04)}
+.neon-box2{border:1px solid var(--neon2);box-shadow:var(--glow2),inset 0 0 20px rgba(255,60,172,.04)}
+.neon-box3{border:1px solid var(--neon3);box-shadow:0 0 8px #7b2fff88,0 0 20px #7b2fff33,inset 0 0 20px rgba(123,47,255,.04)}
+
+/* CORNER DECORATION */
+.corner-tl::before,.corner-tl::after{content:'';position:absolute;width:12px;height:12px}
+.corner-tl::before{top:0;left:0;border-top:2px solid var(--neon);border-left:2px solid var(--neon)}
+.corner-tl::after{bottom:0;right:0;border-bottom:2px solid var(--neon);border-right:2px solid var(--neon)}
+
+/* BUTTONS */
+.btn-neon{
+  display:inline-block;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;padding:13px 28px;
+  background:transparent;color:var(--neon);
+  border:1px solid var(--neon);box-shadow:var(--glow);
+  cursor:pointer;position:relative;transition:all .2s;clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px)
+}
+.btn-neon:hover{background:rgba(0,240,255,.1);box-shadow:0 0 16px #00f0ffaa,0 0 40px #00f0ff44}
+.btn-neon2{
+  display:inline-block;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;padding:13px 28px;
+  background:rgba(0,240,255,.12);color:#fff;
+  border:1px solid rgba(0,240,255,.4);
+  cursor:pointer;clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px)
+}
+
+/* CHIP */
+.chip{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;
+  background:rgba(0,240,255,.08);color:var(--neon);padding:4px 10px;
+  border:1px solid rgba(0,240,255,.3);letter-spacing:.1em}
+
+/* ── БЛОК 1: HERO ── */
+.hero{position:relative;background:var(--dark);padding:80px 48px 72px;text-align:center;overflow:hidden}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 50%,black 40%,transparent 100%);
+}
+.hero-glow-orb{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,240,255,.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-60%);pointer-events:none}
+.hero-eyebrow{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--neon);letter-spacing:.18em;text-transform:uppercase;margin-bottom:24px;opacity:.8}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:46px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:22px;max-width:720px;margin-left:auto;margin-right:auto;text-shadow:0 0 30px rgba(0,240,255,.3)}
+.hero h1 em{color:var(--neon);font-style:normal;text-shadow:0 0 20px var(--neon)}
+.hero-sub{font-size:17px;color:#8ab4cc;line-height:1.65;max-width:520px;margin:0 auto 40px;font-weight:500}
+.hero-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.hero-stat-row{display:flex;justify-content:center;gap:0;margin-top:60px;border-top:1px solid #0d2035;padding-top:40px;flex-wrap:wrap}
+.hero-stat{padding:0 40px;border-right:1px solid #0d2035;text-align:center}
+.hero-stat:last-child{border-right:none}
+.hero-stat-num{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;color:var(--neon);text-shadow:0 0 20px var(--neon);line-height:1}
+.hero-stat-label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:5px;letter-spacing:.06em}
+
+/* ── БЛОК 2: ПРОБЛЕМА ── */
+.problem{padding:72px 48px;background:var(--dark2)}
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;margin-top:36px;border:1px solid #0d2035}
+.problem-card{background:var(--dark3);padding:28px 24px;position:relative;transition:background .2s}
+.problem-card:hover{background:#081425}
+.problem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon),transparent)}
+.problem-num{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);opacity:.5;letter-spacing:.1em;margin-bottom:14px}
+.problem-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:.04em}
+.problem-text{font-size:14px;color:#5a8099;line-height:1.6;font-weight:500}
+
+/* ── БЛОК 3: КАК РАБОТАЕТ ── */
+.hiw{padding:72px 48px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
+.hiw-bg{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:60px 60px;opacity:.4}
+.hiw h2{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:10px;position:relative}
+.hiw-sub{font-size:15px;color:var(--muted);margin-bottom:48px;position:relative;font-weight:500}
+.hiw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative}
+.hiw-connector{position:absolute;top:38px;left:calc(12.5% + 20px);right:calc(12.5% + 20px);height:1px;background:linear-gradient(90deg,transparent,var(--neon),var(--neon),transparent);opacity:.4;z-index:0}
+.hiw-step{background:var(--dark2);border:1px solid #0d2035;padding:28px 18px;text-align:center;position:relative;z-index:1;clip-path:polygon(12px 0%,100% 0%,100% calc(100% - 12px),calc(100% - 12px) 100%,0% 100%,0% 12px)}
+.hiw-step:hover{border-color:rgba(0,240,255,.4);box-shadow:0 0 20px rgba(0,240,255,.08)}
+.step-num{width:44px;height:44px;border:1px solid var(--neon);color:var(--neon);font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:var(--glow);background:rgba(0,240,255,.05)}
+.step-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:.06em}
+.step-desc{font-size:12px;color:#4a7090;line-height:1.55;font-weight:500}
+.step-badge{font-family:'Share Tech Mono',monospace;font-size:9px;background:rgba(0,240,255,.08);color:var(--neon);padding:3px 8px;border:1px solid rgba(0,240,255,.2);letter-spacing:.08em;margin-top:10px;display:inline-block}
+.step-badge.pink{background:rgba(255,60,172,.08);color:var(--neon2);border-color:rgba(255,60,172,.2)}
+
+/* ── БЛОК 4: ЦИФРЫ ── */
+.benefits{padding:72px 48px;background:var(--dark2)}
+.benefits h2{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:40px;letter-spacing:.04em}
+.benefits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.benefit-card{background:var(--dark);border:1px solid #0d2035;padding:28px 24px;position:relative;overflow:hidden}
+.benefit-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.benefit-num{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--neon);text-shadow:0 0 20px var(--neon);line-height:1}
+.benefit-num.pink{color:var(--neon2);text-shadow:0 0 20px var(--neon2)}
+.benefit-unit{font-family:'Orbitron',sans-serif;font-size:18px;color:var(--muted);font-weight:700}
+.benefit-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#fff;margin-top:14px;margin-bottom:6px;letter-spacing:.04em}
+.benefit-label{font-size:13px;color:#3d6070;line-height:1.5;font-weight:500}
+
+/* ── БЛОК 5: СРАВНЕНИЕ ── */
+.compare{padding:72px 48px;background:var(--dark)}
+.compare h2{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:36px;letter-spacing:.04em}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{padding:12px 16px;text-align:left;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid #0d2035}
+.compare-table th.us{color:var(--neon)}
+.compare-table td{padding:13px 16px;border-bottom:1px solid #060e1a;color:#5a8099;font-weight:500}
+.compare-table tr:hover td{background:#060e1a}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table td.us{font-weight:700;color:var(--neon);font-family:'Share Tech Mono',monospace}
+.tick{color:#00f0ff}
+.cross{color:#1a2e40;font-size:11px}
+.hilight-row td{background:rgba(0,240,255,.03)}
+.hilight-row td.us{color:var(--neon)}
+.compare-table td:first-child{color:#7aa8c0;font-family:'Rajdhani',sans-serif}
+
+/* ── БЛОК 6: ПЕРСОНЫ ── */
+.personas{padding:72px 48px;background:var(--dark2)}
+.personas h2{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:36px;letter-spacing:.04em}
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.persona-card{background:var(--dark);border:1px solid #0d2035;padding:26px 22px;position:relative;clip-path:polygon(16px 0%,100% 0%,100% calc(100% - 16px),calc(100% - 16px) 100%,0% 100%,0% 16px)}
+.persona-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--neon),transparent)}
+.persona-avatar{width:46px;height:46px;border:1px solid var(--neon);color:var(--neon);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:14px;background:rgba(0,240,255,.05);box-shadow:var(--glow)}
+.persona-role{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--neon);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;opacity:.7}
+.persona-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;letter-spacing:.04em}
+.persona-quote{font-size:13px;color:#3d6070;line-height:1.6;font-weight:500;font-style:italic;border-left:2px solid rgba(0,240,255,.2);padding-left:10px}
+
+/* ── БЛОК 7: CTA ── */
+.cta-block{background:var(--dark);padding:80px 48px;text-align:center;position:relative;overflow:hidden}
+.cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 100%,rgba(0,240,255,.06) 0%,transparent 70%)}
+.cta-block h2{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;color:#fff;margin-bottom:14px;position:relative;text-shadow:0 0 30px rgba(0,240,255,.3)}
+.cta-block p{font-size:16px;color:var(--muted);margin-bottom:36px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.65;position:relative;font-weight:500}
+.cta-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;position:relative}
+.cta-note{font-family:'Share Tech Mono',monospace;font-size:11px;color:#1a3a4a;margin-top:20px;letter-spacing:.08em;position:relative}
+.cta-chip{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;background:rgba(0,240,255,.05);color:rgba(0,240,255,.5);padding:5px 14px;border:1px solid rgba(0,240,255,.15);letter-spacing:.1em;margin-bottom:24px}
+
+@media(max-width:768px){
+  .hero h1{font-size:28px}
+  .hiw-steps{grid-template-columns:1fr 1fr}
+  .hiw-connector{display:none}
+  .hero,.problem,.hiw,.benefits,.compare,.personas,.cta-block{padding:48px 20px}
+  .hero-stat{padding:0 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ БЛОК 1 — HERO ════ -->
+<section class="hero">
+  <div class="hero-glow-orb"></div>
+  <div class="hero-grid"></div>
+  <div style="position:relative">
+    <div class="hero-eyebrow">// система автоматизации экспериментов v2.0</div>
+    <h1>A/B-тесты на<br><em>автопилоте</em></h1>
+    <p class="hero-sub">AB·AI автоматизирует полный цикл тестирования: генерирует гипотезы, считает выборку, адаптирует трафик и пишет бизнес-отчёт. Без аналитика. За минуты.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn-neon">Запустить систему</a>
+      <a href="#" class="btn-neon2">Смотреть демо</a>
+    </div>
+    <div class="hero-stat-row">
+      <div class="hero-stat">
+        <div class="hero-stat-num">3×</div>
+        <div class="hero-stat-label">быстрее цикл теста</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">−61%</div>
+        <div class="hero-stat-label">потерь трафика</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">800k ₽</div>
+        <div class="hero-stat-label">экономия / год</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ БЛОК 2 — БОЛИ ════ -->
+<section class="problem">
+  <div class="section-label">диагностика проблемы</div>
+  <div style="font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;margin-bottom:8px;letter-spacing:.02em">80% времени аналитика — подготовка, не анализ</div>
+  <div style="font-size:15px;color:var(--muted);max-width:560px;font-weight:500;line-height:1.6">Классический A/B требует 3–5 недель и выделенного специалиста. Большинство команд не могут себе это позволить.</div>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-num">ERR_01</div>
+      <div class="problem-title">Медленный цикл</div>
+      <div class="problem-text">3–5 недель на один тест вручную. Пока считаешь — рынок ушёл вперёд.</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">ERR_02</div>
+      <div class="problem-title">Пустые тесты</div>
+      <div class="problem-text">До 80% A/B-тестов заканчиваются без победителя. Деньги и трафик потрачены.</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">ERR_03</div>
+      <div class="problem-title">Ошибки выборки</div>
+      <div class="problem-text">Неправильный расчёт MDE даёт ложные результаты. Команда внедряет то, что не работает.</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">ERR_04</div>
+      <div class="problem-title">Нет инструмента</div>
+      <div class="problem-text">Varioqub слишком прост, Trisigma — только корпорации. Середины на рынке нет.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ БЛОК 3 — КАК РАБОТАЕТ ════ -->
+<section class="hiw">
+  <div class="hiw-bg"></div>
+  <div style="position:relative">
+    <div class="section-label" style="justify-content:center">протокол выполнения</div>
+    <h2>4 модуля. Полный цикл.</h2>
+    <p class="hiw-sub">ИИ берёт на себя самые трудоёмкие этапы. Тебе остаётся только нажать кнопку.</p>
+    <div class="hiw-steps">
+      <div class="hiw-connector"></div>
+      <div class="hiw-step">
+        <div class="step-num">01</div>
+        <div class="step-title">Гипотеза</div>
+        <div class="step-desc">Описываешь продукт и метрику — LLM генерирует тестируемые идеи с оценкой уверенности</div>
+        <div class="step-badge">GPT / YandexGPT</div>
+      </div>
+      <div class="hiw-step">
+        <div class="step-num" style="border-color:var(--neon2);color:var(--neon2);box-shadow:var(--glow2)">02</div>
+        <div class="step-title">Симулятор</div>
+        <div class="step-desc">ИИ предсказывает исход до запуска — экономишь трафик на слабых гипотезах</div>
+        <div class="step-badge pink">Ключевая инновация</div>
+      </div>
+      <div class="hiw-step">
+        <div class="step-num">03</div>
+        <div class="step-title">Адаптивный тест</div>
+        <div class="step-desc">Thompson Sampling перенаправляет трафик к лидирующему варианту автоматически</div>
+        <div class="step-badge">Байесовский метод</div>
+      </div>
+      <div class="hiw-step">
+        <div class="step-num">04</div>
+        <div class="step-title">Отчёт</div>
+        <div class="step-desc">p-value, Cohen's d и бизнес-рекомендация на понятном языке за секунды</div>
+        <div class="step-badge">LLM-резюме</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ БЛОК 4 — ЦИФРЫ ════ -->
+<section class="benefits">
+  <div class="section-label">выходные данные системы</div>
+  <h2>Экономический эффект</h2>
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <div><span class="benefit-num">800</span><span class="benefit-unit"> k ₽</span></div>
+      <div class="benefit-title">Экономия в год</div>
+      <div class="benefit-label">При 50 тестах и ставке аналитика 3 000 ₽/ч</div>
+    </div>
+    <div class="benefit-card">
+      <div><span class="benefit-num">3</span><span class="benefit-unit">×</span></div>
+      <div class="benefit-title">Ускорение цикла</div>
+      <div class="benefit-label">С 3–5 недель до 1–2 недель на тест</div>
+    </div>
+    <div class="benefit-card">
+      <div><span class="benefit-num pink">−61</span><span class="benefit-unit">%</span></div>
+      <div class="benefit-title">Меньше потерь трафика</div>
+      <div class="benefit-label">Thompson Sampling vs классический A/B</div>
+    </div>
+    <div class="benefit-card">
+      <div><span class="benefit-num pink">−30</span><span class="benefit-unit">%</span></div>
+      <div class="benefit-title">Меньше пустых тестов</div>
+      <div class="benefit-label">ИИ-симулятор отсеивает слабые гипотезы до старта</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ БЛОК 5 — СРАВНЕНИЕ ════ -->
+<section class="compare">
+  <div class="section-label">анализ конкурентной среды</div>
+  <h2>Матрица возможностей</h2>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Возможность</th>
+        <th class="us">AB·AI</th>
+        <th>Varioqub</th>
+        <th>Trisigma</th>
+        <th>Optimizely</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="hilight-row">
+        <td>ИИ-генерация гипотез</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+      </tr>
+      <tr class="hilight-row">
+        <td>Симулятор исхода до запуска</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+      </tr>
+      <tr>
+        <td>Адаптивное тестирование MAB</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="cross">NULL</td>
+        <td class="tick">✓</td>
+        <td class="tick">✓</td>
+      </tr>
+      <tr>
+        <td>LLM бизнес-отчёт</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+        <td class="cross">NULL</td>
+      </tr>
+      <tr>
+        <td>Доступен в России</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="tick">✓</td>
+        <td class="tick">✓</td>
+        <td class="cross">BLOCKED</td>
+      </tr>
+      <tr>
+        <td>Для малого бизнеса</td>
+        <td class="us tick">✓ ACTIVE</td>
+        <td class="tick">✓</td>
+        <td class="cross">CORP ONLY</td>
+        <td class="cross">CORP ONLY</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════ БЛОК 6 — ПЕРСОНЫ ════ -->
+<section class="personas">
+  <div class="section-label">идентификация пользователей</div>
+  <h2>Профили операторов</h2>
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="persona-avatar">АЛ</div>
+      <div class="persona-role">product_manager.exe</div>
+      <div class="persona-name">Алексей, 32</div>
+      <div class="persona-quote">«Провожу 3–5 тестов в месяц, но нет выделенного аналитика. Хочу запускать тест за 30 минут, не за 3 дня.»</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar">МА</div>
+      <div class="persona-role">cro_specialist.exe</div>
+      <div class="persona-name">Марина, 29</div>
+      <div class="persona-quote">«10+ тестов одновременно, нет разработчиков. Нужен инструмент, который сам считает выборку и пишет отчёт.»</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar">ДМ</div>
+      <div class="persona-role">data_analyst.exe</div>
+      <div class="persona-name">Дмитрий, 27</div>
+      <div class="persona-quote">«80% времени трачу на подготовку данных, не на анализ. Хочу автоматизировать рутину.»</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar">ИГ</div>
+      <div class="persona-role">startup_cto.exe</div>
+      <div class="persona-name">Игорь, 36</div>
+      <div class="persona-quote">«Нет бюджета на аналитика. Нужно запускать тест за 30 минут силами одного разработчика.»</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ БЛОК 7 — CTA ════ -->
+<section class="cta-block">
+  <div class="cta-bg"></div>
+  <div class="cta-chip">// free_access · no_credit_card_required</div>
+  <h2>Инициализировать систему</h2>
+  <p>Подключись к AB·AI и запусти первый тест сегодня — от гипотезы до отчёта за один сеанс.</p>
+  <div class="cta-row">
+    <a href="#" class="btn-neon">Запустить демо →</a>
+    <a href="#" class="btn-neon2">Документация</a>
+  </div>
+  <div class="cta-note">// stack: python · scipy · llm · thompson_sampling · streamlit</div>
+</section>
+
+</body>
+</html>
